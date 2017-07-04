@@ -15,15 +15,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class BookAdapter extends ArrayAdapter<Book> {
+class BookAdapter extends ArrayAdapter<Book> implements Serializable {
 
     private static String LOG_TAG = BookAdapter.class.getSimpleName();
     private ArrayList<Book> mBooksArrayList;
     private LruCache<String, Bitmap> mMemoryCache;
 
-    public BookAdapter(Context context, ArrayList<Book> objects) {
+    BookAdapter(Context context, ArrayList<Book> objects) {
         super(context, 0, objects);
         mBooksArrayList = objects;
 
@@ -41,13 +42,13 @@ public class BookAdapter extends ArrayAdapter<Book> {
         };
     }
 
-    public void addBitmapToMemoryCache(String key, Bitmap bitmap) {
+    void addBitmapToMemoryCache(String key, Bitmap bitmap) {
         if (getBitmapFromMemCache(key) == null) {
             mMemoryCache.put(key, bitmap);
         }
     }
 
-    public Bitmap getBitmapFromMemCache(String key) {
+    Bitmap getBitmapFromMemCache(String key) {
         return mMemoryCache.get(key);
     }
 

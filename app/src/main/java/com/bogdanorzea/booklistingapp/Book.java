@@ -1,8 +1,9 @@
 package com.bogdanorzea.booklistingapp;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-class Book {
+class Book implements Serializable {
     private String mDescription;
     private String mThumbnailLink;
     private ArrayList<String> mAuthors;
