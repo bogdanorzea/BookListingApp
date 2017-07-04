@@ -85,7 +85,6 @@ class Utilities {
         }
 
         static ArrayList<Book> getBookArrayList(String requestUrl) {
-            // TODO construct query link
             String jsonUrl = null;
             try {
                 jsonUrl = makeHttpRequest(requestUrl);
@@ -99,16 +98,25 @@ class Utilities {
 
             ArrayList<Book> bookArray = new ArrayList<>();
             JSONObject bookJson;
+            JSONArray items;
+
             try {
                 bookJson = new JSONObject(jsonUrl);
-                JSONArray items = bookJson.getJSONArray("items");
-                for (int i = 0; i < items.length(); i++) {
+                items = bookJson.getJSONArray("items");
+            } catch (JSONException e) {
+                Log.d(LOG_TAG, "Error parsing the root JSON response");
+                e.printStackTrace();
+                return null;
+            }
+
+            for (int i = 0; i < items.length(); i++) {
+                // In case one of the returned books is malformed, skip it and continue to the rest
+                try {
                     JSONObject currentItem = items.getJSONObject(i);
+                    JSONObject currentVolumeInfo = currentItem.getJSONObject("volumeInfo");
 
                     // Google Books ID
                     String currentId = currentItem.getString("id");
-
-                    JSONObject currentVolumeInfo = currentItem.getJSONObject("volumeInfo");
 
                     // Title
                     String currentTitle = currentVolumeInfo.getString("title");
@@ -118,11 +126,6 @@ class Utilities {
                     JSONArray currentAuthorsJsonArray = currentVolumeInfo.getJSONArray("authors");
                     for (int j = 0; j < currentAuthorsJsonArray.length(); j++) {
                         currentAuthors.add(currentAuthorsJsonArray.getString(j));
-                    }
-
-                    // Description may be missing from the object
-                    if (currentVolumeInfo.has("description")) {
-                        String currentDescription = currentVolumeInfo.getString("description");
                     }
 
                     // ISBN 13
@@ -136,13 +139,28 @@ class Utilities {
                         }
                     }
 
-                    bookArray.add(new Book(currentAuthors, currentTitle, currentId, currentISBN));
-                }
-            } catch (JSONException e) {
-                Log.d(LOG_TAG, "Error parsing the JSON response");
-                e.printStackTrace();
-            }
+                    // Create current book object
+                    Book currentBook = new Book(currentAuthors, currentTitle, currentId, currentISBN);
 
+                    // Thumbnail link
+                    JSONObject imageLinksJsonObject = currentVolumeInfo.getJSONObject("imageLinks");
+                    if (imageLinksJsonObject.has("thumbnail")) {
+                        currentBook.setThumbnailLink(imageLinksJsonObject.getString("thumbnail"));
+                    }
+
+                    // Description
+                    if (currentVolumeInfo.has("description")) {
+                        currentBook.setDescription(currentVolumeInfo.getString("description"));
+                    }
+
+                    // Add current book to list
+                    bookArray.add(currentBook);
+
+                } catch (JSONException e) {
+                    Log.d(LOG_TAG, "Error parsing a book from the JSON response.");
+                    e.printStackTrace();
+                }
+            }
             return bookArray;
         }
     }

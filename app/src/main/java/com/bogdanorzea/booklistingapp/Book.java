@@ -3,8 +3,8 @@ package com.bogdanorzea.booklistingapp;
 import java.util.ArrayList;
 
 class Book {
-    String mDescription;
-    String mThumbnailLink;
+    private String mDescription;
+    private String mThumbnailLink;
     private ArrayList<String> mAuthors;
     private String mTitle;
     private String mId;
@@ -43,5 +43,21 @@ class Book {
 
     public String getTitle() {
         return mTitle;
+    }
+
+    public String getDescription() {
+        return mDescription;
+    }
+
+    public void setDescription(String description) {
+        this.mDescription = description;
+    }
+
+    public String getThumbnailLink() {
+        return mThumbnailLink;
+    }
+
+    public void setThumbnailLink(String thumbnailLink) {
+        this.mThumbnailLink = thumbnailLink;
     }
 }
