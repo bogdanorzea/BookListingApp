@@ -21,8 +21,8 @@ import java.util.ArrayList;
 class BookAdapter extends ArrayAdapter<Book> implements Serializable {
 
     private static String LOG_TAG = BookAdapter.class.getSimpleName();
+    private static LruCache<String, Bitmap> mMemoryCache;
     private ArrayList<Book> mBooksArrayList;
-    private LruCache<String, Bitmap> mMemoryCache;
 
     BookAdapter(Context context, ArrayList<Book> objects) {
         super(context, 0, objects);
@@ -40,6 +40,21 @@ class BookAdapter extends ArrayAdapter<Book> implements Serializable {
                 return bitmap.getByteCount() / 1024;
             }
         };
+    }
+
+    @Override
+    public int getCount() {
+        return mBooksArrayList.size();
+    }
+
+    @Override
+    public Book getItem(int position) {
+        return mBooksArrayList.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
     }
 
     void addBitmapToMemoryCache(String key, Bitmap bitmap) {
@@ -73,7 +88,6 @@ class BookAdapter extends ArrayAdapter<Book> implements Serializable {
         titleTextView.setText(currentBook.getTitle());
 
         // Set the cover
-        // TODO Try to implement a cache mechanism so that the image won't get downloaded every time
         String currentBookThumbnailLink = currentBook.getThumbnailLink();
         ImageView coverImageView = (ImageView) listItemView.findViewById(R.id.book_cover);
 

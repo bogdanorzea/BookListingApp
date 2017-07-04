@@ -38,6 +38,4 @@
             android:textStyle="italic"
             tools:text="Author" />
     </LinearLayout>
-
-
 </LinearLayout>

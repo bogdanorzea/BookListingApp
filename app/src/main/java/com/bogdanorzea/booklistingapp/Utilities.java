@@ -100,6 +100,7 @@ class Utilities {
             JSONObject bookJson;
             JSONArray items;
 
+            // TODO No result returned
             try {
                 bookJson = new JSONObject(jsonUrl);
                 items = bookJson.getJSONArray("items");
@@ -109,6 +110,7 @@ class Utilities {
                 return null;
             }
 
+            // TODO Fix the case when books might be missing authors, isbn and so on
             for (int i = 0; i < items.length(); i++) {
                 // In case one of the returned books is malformed, skip it and continue to the rest
                 try {
@@ -143,9 +145,11 @@ class Utilities {
                     Book currentBook = new Book(currentAuthors, currentTitle, currentId, currentISBN);
 
                     // Thumbnail link
-                    JSONObject imageLinksJsonObject = currentVolumeInfo.getJSONObject("imageLinks");
-                    if (imageLinksJsonObject.has("thumbnail")) {
-                        currentBook.setThumbnailLink(imageLinksJsonObject.getString("thumbnail"));
+                    if (currentVolumeInfo.has("imageLinks")) {
+                        JSONObject imageLinksJsonObject = currentVolumeInfo.getJSONObject("imageLinks");
+                        if (imageLinksJsonObject.has("thumbnail")) {
+                            currentBook.setThumbnailLink(imageLinksJsonObject.getString("thumbnail"));
+                        }
                     }
 
                     // Description
