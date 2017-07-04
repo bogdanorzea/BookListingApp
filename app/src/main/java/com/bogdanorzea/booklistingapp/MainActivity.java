@@ -4,7 +4,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.TextView;
+import android.widget.ListView;
 
 import com.bogdanorzea.booklistingapp.Utilities.Utils;
 
@@ -13,13 +13,16 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String GOOGLE_BOOKS_REQUEST_URL = "https://www.googleapis.com/books/v1/volumes";
-    TextView tv;
+    private ListView mBookListView;
+    private BookAdapter mBookAdaptor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        tv = (TextView) findViewById(R.id.text);
+
+        // Find the book list
+        mBookListView = (ListView) findViewById(R.id.book_list);
 
         new JSONQueryTask().execute();
     }
@@ -39,13 +42,11 @@ public class MainActivity extends AppCompatActivity {
             return Utils.getBookArrayList(uriBuilder.toString());
         }
 
-
         @Override
         protected void onPostExecute(ArrayList<Book> books) {
-            // TODO add items to a ListView
-            for (int i = 0; i < books.size(); i++) {
-                tv.append("\n" + books.get(i).toString());
-            }
+            // Set the book adaptor
+            mBookAdaptor = new BookAdapter(getApplicationContext(), books);
+            mBookListView.setAdapter(mBookAdaptor);
         }
     }
 }
