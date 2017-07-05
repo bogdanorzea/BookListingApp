@@ -1,6 +1,5 @@
 package com.bogdanorzea.booklistingapp;
 
-import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -90,9 +89,6 @@ class Utilities {
                 jsonUrl = makeHttpRequest(requestUrl);
             } catch (IOException e) {
                 Log.e(LOG_TAG, "There was a problem freeing up resources", e);
-            }
-
-            if (TextUtils.isEmpty(jsonUrl)) {
                 return null;
             }
 
@@ -100,17 +96,19 @@ class Utilities {
             JSONObject bookJson;
             JSONArray items;
 
-            // TODO No result returned
             try {
                 bookJson = new JSONObject(jsonUrl);
-                items = bookJson.getJSONArray("items");
+                int totalItems = bookJson.getInt("totalItems");
+                if (totalItems > 0) {
+                    items = bookJson.getJSONArray("items");
+                } else {
+                    return bookArray;
+                }
             } catch (JSONException e) {
-                Log.d(LOG_TAG, "Error parsing the root JSON response");
-                e.printStackTrace();
+                Log.d(LOG_TAG, "Invalid JSON response", e);
                 return null;
             }
 
-            // TODO Fix the case when books might be missing authors, isbn and so on
             for (int i = 0; i < items.length(); i++) {
                 // In case one of the returned books is malformed, skip it and continue to the rest
                 try {
@@ -125,22 +123,27 @@ class Utilities {
 
                     // Authors
                     ArrayList<String> currentAuthors = new ArrayList<String>();
-                    JSONArray currentAuthorsJsonArray = currentVolumeInfo.getJSONArray("authors");
-                    for (int j = 0; j < currentAuthorsJsonArray.length(); j++) {
-                        currentAuthors.add(currentAuthorsJsonArray.getString(j));
+                    if (currentVolumeInfo.has("authors")) {
+                        JSONArray currentAuthorsJsonArray = currentVolumeInfo.getJSONArray("authors");
+                        for (int j = 0; j < currentAuthorsJsonArray.length(); j++) {
+                            currentAuthors.add(currentAuthorsJsonArray.getString(j));
+                        }
+                    } else {
+                        currentAuthors.add("Unknown author");
                     }
 
                     // ISBN 13
                     long currentISBN = 0L;
-                    JSONArray industryIdentifiersJsonArray = currentVolumeInfo.getJSONArray("industryIdentifiers");
-                    for (int j = 0; j < industryIdentifiersJsonArray.length(); j++) {
-                        JSONObject currentIdentifier = industryIdentifiersJsonArray.getJSONObject(j);
-                        if (0 == currentIdentifier.getString("type").compareTo("ISBN_13")) {
-                            currentISBN = currentIdentifier.getLong("identifier");
-                            break;
+                    if (currentVolumeInfo.has("industryIdentifiers")) {
+                        JSONArray industryIdentifiersJsonArray = currentVolumeInfo.getJSONArray("industryIdentifiers");
+                        for (int j = 0; j < industryIdentifiersJsonArray.length(); j++) {
+                            JSONObject currentIdentifier = industryIdentifiersJsonArray.getJSONObject(j);
+                            if (0 == currentIdentifier.getString("type").compareTo("ISBN_13")) {
+                                currentISBN = currentIdentifier.getLong("identifier");
+                                break;
+                            }
                         }
                     }
-
                     // Create current book object
                     Book currentBook = new Book(currentAuthors, currentTitle, currentId, currentISBN);
 
@@ -168,4 +171,5 @@ class Utilities {
             return bookArray;
         }
     }
+
 }

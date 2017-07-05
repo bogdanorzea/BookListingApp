@@ -87,14 +87,19 @@ class BookAdapter extends ArrayAdapter<Book> implements Serializable {
         TextView titleTextView = (TextView) listItemView.findViewById(R.id.book_title);
         titleTextView.setText(currentBook.getTitle());
 
+        // Set the description
+        TextView descriptionTextView = (TextView) listItemView.findViewById(R.id.book_description);
+        descriptionTextView.setText(currentBook.getDescription());
+
         // Set the cover
         String currentBookThumbnailLink = currentBook.getThumbnailLink();
         ImageView coverImageView = (ImageView) listItemView.findViewById(R.id.book_cover);
 
+        // TODO Fix cache not loading correctly
         if (!TextUtils.isEmpty(currentBookThumbnailLink)) {
-
             final Bitmap bitmap = getBitmapFromMemCache(currentBookThumbnailLink);
             if (bitmap != null) {
+                Log.i(LOG_TAG, "Loaded from cache: " + currentBookThumbnailLink);
                 coverImageView.setImageBitmap(bitmap);
             } else {
                 coverImageView.setImageResource(R.drawable.loading_cover);
@@ -120,6 +125,7 @@ class BookAdapter extends ArrayAdapter<Book> implements Serializable {
                 InputStream in = new java.net.URL(urls[0]).openStream();
                 bitmap = BitmapFactory.decodeStream(in);
                 addBitmapToMemoryCache(urls[0], bitmap);
+                Log.i(LOG_TAG, "Added to cache: " + urls[0]);
             } catch (Exception e) {
                 Log.d(LOG_TAG, "Error in downloading cover image", e);
             }
