@@ -50,7 +50,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:textAlignment="center"
-            android:textSize="18sp"
+            android:textSize="@dimen/author_size"
             tools:text="Use the search icon from the\ntoolbar to find books online." />
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
