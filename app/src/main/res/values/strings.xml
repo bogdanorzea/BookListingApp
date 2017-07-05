@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Book Search</string>
     <string name="search">Search</string>
+    <string name="no_preview_link">No preview link available</string>
+    <string name="use_search">Use the search icon from the toolbar to find books online.</string>
+    <string name="no_internet">No internet connection.</string>
+    <string name="no_books">No books found.</string>
 </resources>

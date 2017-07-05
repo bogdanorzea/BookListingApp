@@ -10,11 +10,13 @@ class Book implements Serializable {
     private String mTitle;
     private String mId;
     private long mIsbn;
+    private String mPreviewLink;
 
     public Book(ArrayList<String> authors, String title, String id, long isbn) {
         this.mAuthors = authors;
         this.mTitle = title;
         this.mIsbn = isbn;
+        mId = id;
     }
 
     private Book() {
@@ -60,5 +62,13 @@ class Book implements Serializable {
 
     public void setThumbnailLink(String thumbnailLink) {
         this.mThumbnailLink = thumbnailLink;
+    }
+
+    public String getPreviewLink() {
+        return mPreviewLink;
+    }
+
+    public void setPreviewLink(String mPreviewLink) {
+        this.mPreviewLink = mPreviewLink;
     }
 }

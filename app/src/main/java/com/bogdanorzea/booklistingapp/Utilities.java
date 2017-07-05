@@ -155,6 +155,11 @@ class Utilities {
                         }
                     }
 
+                    // Thumbnail link
+                    if (currentVolumeInfo.has("previewLink")) {
+                        currentBook.setPreviewLink(currentVolumeInfo.getString("previewLink"));
+                    }
+
                     // Description
                     if (currentVolumeInfo.has("description")) {
                         currentBook.setDescription(currentVolumeInfo.getString("description"));

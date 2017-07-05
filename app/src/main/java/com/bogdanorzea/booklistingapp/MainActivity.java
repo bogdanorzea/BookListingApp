@@ -1,5 +1,8 @@
 package com.bogdanorzea.booklistingapp;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -85,8 +88,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Find the book list and set the EmptyView
+        // Find the book list
         mBookListView = (ListView) findViewById(R.id.book_list);
+
+        // Set the book adaptor
+        mBookAdaptor = new BookAdapter(getApplicationContext(), new ArrayList<Book>());
+        mBookListView.setAdapter(mBookAdaptor);
+
+        // Set the EmptyView
         emptyView = (LinearLayout) findViewById(R.id.empty_results);
         mBookListView.setEmptyView(findViewById(R.id.empty_results));
         loadingProgress = (ProgressBar) findViewById(R.id.progressBar);
@@ -100,11 +109,30 @@ public class MainActivity extends AppCompatActivity {
             mBookAdaptor = (BookAdapter) savedInstanceState.getSerializable(ADAPTER);
             mBookListView.setAdapter(mBookAdaptor);
         } else {
-            emptyText.setText("Use the search icon from the toolbar\nto find books online.");
+            emptyText.setText(R.string.use_search);
             emptyImage.setImageResource(R.drawable.ic_info_black_48dp);
         }
 
-        // TODO add internet checking
+        checkConnection();
+    }
+
+    private boolean checkConnection() {
+        // Check for the internet connection status
+        ConnectivityManager cm = (ConnectivityManager) getApplicationContext()
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+
+        // Start the LoaderManager to retrieve Earthquake information
+        if (isConnected) {
+            return true;
+        } else {
+            emptyView.setVisibility(View.VISIBLE);
+            emptyText.setText(R.string.no_internet);
+            emptyImage.setImageResource(R.drawable.ic_signal_wifi_off_black_48dp);
+            return false;
+        }
     }
 
     private void parseInput(String query) {
@@ -115,7 +143,9 @@ public class MainActivity extends AppCompatActivity {
         uriBuilder.appendQueryParameter("q", query.replace(" ", "%20"));
         uriBuilder.appendQueryParameter("maxResults", "10");
 
-        new JSONQueryTask().execute(uriBuilder.toString());
+        if (checkConnection()) {
+            new JSONQueryTask().execute(uriBuilder.toString());
+        }
     }
 
     private class JSONQueryTask extends AsyncTask<String, Void, ArrayList<Book>> {
@@ -126,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPreExecute() {
-            mBookListView.setAdapter(null);
+            mBookAdaptor.clear();
             emptyView.setVisibility(View.GONE);
             loadingProgress.setVisibility(View.VISIBLE);
         }
@@ -135,14 +165,13 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(ArrayList<Book> books) {
             loadingProgress.setVisibility(View.GONE);
             if (books == null) {
-                return;
+
             } else if (books.size() > 0) {
-                // Set the book adaptor
-                mBookAdaptor = new BookAdapter(getApplicationContext(), books);
-                mBookListView.setAdapter(mBookAdaptor);
+                mBookAdaptor.clear();
+                mBookAdaptor.addAll(books);
             } else {
                 emptyView.setVisibility(View.VISIBLE);
-                emptyText.setText("No books found.");
+                emptyText.setText(R.string.no_books);
                 emptyImage.setImageResource(R.drawable.ic_warning_black_48dp);
             }
         }

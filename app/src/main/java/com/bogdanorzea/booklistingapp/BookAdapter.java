@@ -1,8 +1,10 @@
 package com.bogdanorzea.booklistingapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
@@ -13,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.InputStream;
 import java.io.Serializable;
@@ -92,20 +95,27 @@ class BookAdapter extends ArrayAdapter<Book> implements Serializable {
         descriptionTextView.setText(currentBook.getDescription());
 
         // Set the cover
-        String currentBookThumbnailLink = currentBook.getThumbnailLink();
         ImageView coverImageView = (ImageView) listItemView.findViewById(R.id.book_cover);
-
-        // TODO Fix cache not loading correctly
+        String currentBookThumbnailLink = currentBook.getThumbnailLink();
         if (!TextUtils.isEmpty(currentBookThumbnailLink)) {
-            final Bitmap bitmap = getBitmapFromMemCache(currentBookThumbnailLink);
-            if (bitmap != null) {
-                Log.i(LOG_TAG, "Loaded from cache: " + currentBookThumbnailLink);
-                coverImageView.setImageBitmap(bitmap);
-            } else {
-                coverImageView.setImageResource(R.drawable.loading_cover);
-                new FetchImageTask(coverImageView).execute(currentBookThumbnailLink);
-            }
+            coverImageView.setImageResource(R.drawable.loading_cover);
+            new FetchImageTask(coverImageView).execute(currentBookThumbnailLink);
+        } else {
+            coverImageView.setImageResource(R.drawable.no_cover);
         }
+
+        // Set on click listener to open website
+        listItemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String previewLink = currentBook.getPreviewLink();
+                if (!TextUtils.isEmpty(previewLink)) {
+                    getContext().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(currentBook.getPreviewLink())));
+                } else {
+                    Toast.makeText(v.getContext(), R.string.no_preview_link, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         // Return the view
         return listItemView;
@@ -120,22 +130,28 @@ class BookAdapter extends ArrayAdapter<Book> implements Serializable {
 
         @Override
         protected Bitmap doInBackground(String... urls) {
-            Bitmap bitmap = null;
-            try {
-                InputStream in = new java.net.URL(urls[0]).openStream();
-                bitmap = BitmapFactory.decodeStream(in);
-                addBitmapToMemoryCache(urls[0], bitmap);
-                Log.i(LOG_TAG, "Added to cache: " + urls[0]);
-            } catch (Exception e) {
-                Log.d(LOG_TAG, "Error in downloading cover image", e);
-            }
+            String thumbnailLink = urls[0];
+            Bitmap bitmap = getBitmapFromMemCache(thumbnailLink);
 
+            if (bitmap == null) {
+                try {
+                    InputStream in = new java.net.URL(urls[0]).openStream();
+                    bitmap = BitmapFactory.decodeStream(in);
+                    addBitmapToMemoryCache(urls[0], bitmap);
+                } catch (Exception e) {
+                    Log.d(LOG_TAG, "Error in downloading cover image", e);
+                }
+            }
             return bitmap;
         }
 
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-            mCoverImageView.setImageBitmap(bitmap);
+            if (bitmap == null) {
+                mCoverImageView.setImageResource(R.drawable.no_cover);
+            } else {
+                mCoverImageView.setImageBitmap(bitmap);
+            }
         }
     }
 }
